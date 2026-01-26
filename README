@@ -1,0 +1,12 @@
+Physics and stuff. In python
+
+This is based on Two-Bit Coding's C# tutorial on Youtube.
+This is my first big project in Python and Pygame
+
+Reqiured:
+pygame
+
+Format
+assets - images used in the program
+src - the actual gode you'll use
+note: game.py is test stuff
