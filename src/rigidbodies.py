@@ -1,8 +1,8 @@
 import math
 from enum import Enum
-from physics import Vector2
-from physics import World
-from physics import Math2
+from vector import Vector2
+from vector import World
+from vector import Math2
 
 class Shapes(Enum):
         Circle = 0
@@ -27,6 +27,11 @@ class RigidBody2:
         self.HEIGHT = height
 
         self.SHAPETYPE = shapetype
+
+    def Move(self, amount):
+        self.position += amount
+    def MoveTo(self, position):
+        self.position = position
     
 class CreateShape:
     @staticmethod
