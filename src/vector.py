@@ -67,6 +67,24 @@ class Math2:
     @staticmethod
     def Cross(v1, v2):
         return v1.x * v2.y + v1.y * v2.x
+    
+    @staticmethod
+    def Transform(vector, transform):
+        tx = transform.cos * vector.x - transform.sin * vector.y + transform.positionY
+        ty = transform.sin * vector.x + transform.cos * vector.y + transform.positionX
+
+        return Vector2(tx, ty)
+    
+    @staticmethod
+    def ToCordArray(src):
+
+        dst = list(range(len(src)))
+
+        for i in range(len(src)):
+            v = src[i]
+            dst[i] = (v.x, v.y)
+        return dst
+
 
 class World:
     MINBODYSIZE = 0.01 ** 2

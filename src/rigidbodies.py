@@ -3,6 +3,7 @@ from enum import Enum
 from vector import Vector2
 from vector import World
 from vector import Math2
+from transform import Transform
 
 class Shapes(Enum):
         Circle = 0
@@ -26,12 +27,44 @@ class RigidBody2:
         self.WIDTH = width
         self.HEIGHT = height
 
+        #Shape key:
+        #0 = cicle
+        #1 = box
         self.SHAPETYPE = shapetype
+
+        if (shapetype == 1):
+            self.VERTICES = CreateShape.BoxVertices(self.WIDTH, self.HEIGHT)
+            self.transformedvertices = list(range(len(self.VERTICES)))
+            self.triangles = CreateShape.CreateBoxTriangles()
+        else:
+            self.VERTICES = list()
+            self.transformedvertices = list()
+            self.triangles = list()
+
+        self.transformUpdateRequired = True
+
+    def GetTransformedVertices(self):
+        if self.transformUpdateRequired:
+            transform = Transform(self.position, self.rotation)
+
+            for i in range(len(self.VERTICES)):
+                v = self.VERTICES[i]
+                self.transformedvertices[i] = Math2.Transform(v, transform)
+                 
+
+        return self.transformedvertices
 
     def Move(self, amount):
         self.position += amount
+        self.transformUpdateRequired = True
+
     def MoveTo(self, position):
         self.position = position
+        self.transformUpdateRequired = True
+
+    def Rotate(self, amount):
+        self.rotation += amount
+        self.transformUpdateRequired = True
     
 class CreateShape:
     @staticmethod
@@ -82,3 +115,23 @@ class CreateShape:
 
             body = RigidBody2(position, dencity, mass, restitution, area, isStatic, 0, width, height, 1)
             return body
+    
+    @staticmethod
+    def BoxVertices(width, height):
+        left = -width / 2
+        right = left + width
+        bottom = -height / 2
+        top = bottom + height
+
+        vertices = list()
+        vertices.append(Vector2(left, top))
+        vertices.append(Vector2(right, top))
+        vertices.append(Vector2(right, bottom))
+        vertices.append(Vector2(left, bottom))
+
+        return vertices
+    
+    @staticmethod
+    def CreateBoxTriangles():
+        triangles = [0, 1, 2, 0, 2, 3]
+        return triangles

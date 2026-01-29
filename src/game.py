@@ -3,7 +3,7 @@
 #Dylan Ku
 #The code in this project is mostly based of of Two-Bit Codings's C# tutorial translated into Python by me :)
 
-import pygame, sys, random, collisions
+import pygame, sys, random, collisions, math
 from pygame.locals import *
 from vector import Vector2
 from vector import Math2
@@ -59,6 +59,15 @@ def RenderCircle(position, color, radius, width):
 def RenderBox(position, color, sizeX, sizeY, width):
     pygame.draw.rect(DISPLAYSURF, color, ((position.x * zoom * scale) + GAMEWIDTH, (position.y * zoom * scale * -1) + GAMEHEIGHT, sizeX * scale * zoom, sizeY * scale * zoom), width)
 
+#points are vectors and must be converted into a sequence of coordinates
+def RenderPolygon(rigidbody, color, width):
+    dst = Math2.ToCordArray(rigidbody.GetTransformedVertices())
+    
+    for i in range(len(dst)):
+        dst[i] = ((dst[i][0] * zoom * scale) + GAMEWIDTH, (dst[i][1] * zoom * scale) + GAMEHEIGHT)
+
+    pygame.draw.polygon(DISPLAYSURF, color, dst, width)
+
 
 #Color
 BLACK = (0, 0, 0)
@@ -69,7 +78,7 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 TEAL = (0, 128, 128)
 
-#---------------------
+#------Initialize------
 
 #Test stuff
 bodyList = list()
@@ -77,7 +86,7 @@ bodyCount = 10
 padding = 1
 
 for i in range(bodyCount):
-    type = 0
+    type = 1
 
     x = random.randrange(-GAMEWIDTH / 10 + 1, GAMEWIDTH / 10 - 1)
     y = random.randrange(-GAMEHEIGHT / 10 + 1, GAMEHEIGHT / 10 - 1)
@@ -85,7 +94,7 @@ for i in range(bodyCount):
     if type == 0:
         bodyList.append(CreateShape.CreateCircleBody(1, Vector2(x, y), 2, False, 0.5))
     if type == 1:
-        bodyList.append(CreateShape.CreateBoxBody(1, 1, Vector2(x, y), 2, False, 0.5))
+        bodyList.append(CreateShape.CreateBoxBody(2, 2, Vector2(x, y), 2, False, 0.5))
         
 dx = 0
 dy = 0
@@ -109,7 +118,7 @@ while True:
         if body.SHAPETYPE == 0:
             RenderCircle(body.position, WHITE, body.RADIUS, 0)
         elif body.SHAPETYPE == 1:
-            RenderBox(body.position, BLACK, body.WIDTH, body.HEIGHT, 0)
+            RenderPolygon(body, BLACK, 0)
 
     #Event Code 
     for event in pygame.event.get():
@@ -143,19 +152,24 @@ while True:
         bodyList[0].Move(velocity)
 
     #Collisions
-    for i in range(bodyCount - 1):
-        bodyA = bodyList[i]
-        j = i + 1
-        while j < bodyCount:
-            bodyB = bodyList[j]
-            
-            intercecting = collisions.IntercectCircles(bodyA.position, bodyA.RADIUS, bodyB.position, bodyB.RADIUS)
 
-            if intercecting.collide:
-                bodyA.Move(intercecting.normal * -1 * (intercecting.depth / 2))
-                bodyB.Move(intercecting.normal * (intercecting.depth / 2))
+    for i in range(bodyCount):
+        body = bodyList[i]
+        body.Rotate(math.pi / 2 * deltaTime)
 
-            j += 1
+#    for i in range(bodyCount - 1):
+#        bodyA = bodyList[i]
+#        j = i + 1
+#        while j < bodyCount:
+#            bodyB = bodyList[j]
+#            
+#            intercecting = collisions.IntercectCircles(bodyA.position, bodyA.RADIUS, bodyB.position, bodyB.RADIUS)
+#
+#            if intercecting.collide:
+#                bodyA.Move(intercecting.normal * -1 * (intercecting.depth / 2))
+#                bodyB.Move(intercecting.normal * (intercecting.depth / 2))
+#
+#            j += 1
 
 
     pygame.display.update()
