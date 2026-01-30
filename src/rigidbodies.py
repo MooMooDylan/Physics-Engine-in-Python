@@ -54,21 +54,21 @@ class RigidBody2:
 
         return self.transformedvertices
 
-    def Move(self, amount):
+    def Move(self, amount: float):
         self.position += amount
         self.transformUpdateRequired = True
 
-    def MoveTo(self, position):
+    def MoveTo(self, position: Vector2):
         self.position = position
         self.transformUpdateRequired = True
 
-    def Rotate(self, amount):
+    def Rotate(self, amount: float):
         self.rotation += amount
         self.transformUpdateRequired = True
     
 class CreateShape:
     @staticmethod
-    def CreateCircleBody(radius, position, dencity, isStatic, restitution):
+    def CreateCircleBody(radius: float, position: Vector2, dencity: float, isStatic: bool, restitution: float):
 
             area = (radius ** 2) * math.pi
 
@@ -93,7 +93,7 @@ class CreateShape:
             return body
 
     @staticmethod
-    def CreateBoxBody(width, height, position, dencity, isStatic, restitution):
+    def CreateBoxBody(width: float, height: float, position: Vector2, dencity: float, isStatic: bool, restitution: float):
             area = width * height
 
             if (area < World.MINBODYSIZE):
@@ -117,7 +117,7 @@ class CreateShape:
             return body
     
     @staticmethod
-    def BoxVertices(width, height):
+    def BoxVertices(width: float, height: float):
         left = -width / 2
         right = left + width
         bottom = -height / 2

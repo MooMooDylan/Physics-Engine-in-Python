@@ -8,6 +8,7 @@ from pygame.locals import *
 from vector import Vector2
 from vector import Math2
 from rigidbodies import CreateShape
+from rigidbodies import RigidBody2
 
 #----Pygame Setup----
 
@@ -21,55 +22,71 @@ fpsClock = pygame.time.Clock()
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 600
 
+#World Space Dimenstions
 GAMEWIDTH = WINDOWWIDTH / 2
 GAMEHEIGHT = WINDOWHEIGHT / 2
 
 #Create Window
 DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), 0, 32)
+image = 1
 pygame.display.set_caption('Physics')
+
+#Import Icon
 try:
-    icon = pygame.image.load("assets/vectorohye.webp")
+    if image == 0:
+        icon = pygame.image.load("assets/vectorohye.webp")
+    elif image == 1:
+        icon = pygame.image.load("assets/Galaxy_brain.jpg")
     pygame.display.set_icon(icon)
 except:
     print("Failed to load image.")
 
 #----REDERING STUFF----
 
-#Zoom
-scale = 10
+#Multiply posistion and scale by zoom
+#Multiply Horizontal / Y positions by -1
+#Add GAMEWIDTH and GAMEHEIGHT
+
+#Zoom and Scale
+#Note scale pixels = 1 meter when zoom = 1
+SCALE = 10
 zoom = 1
 zoomSpeed = 0.5
 
 #Render Functions
-def DrawBorder():
+
+def DrawBorder(): #Draws a border showing what is seen on zoom 1 Note: Broken when scale isn't 10
     if zoom >= 1:
         pygame.draw.rect(DISPLAYSURF, BLACK, (0, 0, WINDOWWIDTH * zoom, WINDOWHEIGHT * zoom), 1)
     else:
         pygame.draw.rect(DISPLAYSURF, BLACK, (GAMEWIDTH / 2, GAMEHEIGHT / 2, WINDOWWIDTH * zoom, WINDOWHEIGHT * zoom), 1)
 
-def RenderVector(vector):
-    return (((vector.x * zoom * scale) + GAMEWIDTH), ((vector.y * zoom * scale * -1) + GAMEHEIGHT))
+def VectorToTuple(vector: Vector2): #Converts a Vector to Coordanites(tuple) that can be rendered
+    return (((vector.x * zoom * SCALE) + GAMEWIDTH), ((vector.y * zoom * SCALE * -1) + GAMEHEIGHT))
 
-def DrawVectorAsLine(vector, color, width):
-    pygame.draw.line(DISPLAYSURF, color, RenderVector(Vector2(0, 0)), RenderVector(vector), width)
+def RenderVector(origin: Vector2, vector: Vector2, color: tuple, width: int): #Draws a vector on the screen
+    pygame.draw.line(DISPLAYSURF, color, VectorToTuple(origin), VectorToTuple(origin + (vector * SCALE)), width)
 
-def RenderCircle(position, color, radius, width):
-    pygame.draw.circle(DISPLAYSURF, color, RenderVector(position), radius * scale * zoom, width)
+def RenderCircle(position: Vector2, color: tuple, radius: float, width: int): #Renders a circle
+    pygame.draw.circle(DISPLAYSURF, color, VectorToTuple(position), radius * SCALE * zoom, width)
 
-def RenderBox(position, color, sizeX, sizeY, width):
-    pygame.draw.rect(DISPLAYSURF, color, ((position.x * zoom * scale) + GAMEWIDTH, (position.y * zoom * scale * -1) + GAMEHEIGHT, sizeX * scale * zoom, sizeY * scale * zoom), width)
+def RenderBox(position: Vector2, color: tuple, sizeX: float, sizeY: float, width: int): #Renders a box
+    pygame.draw.rect(DISPLAYSURF, color, ((position.x * zoom * SCALE) + GAMEWIDTH, (position.y * zoom * SCALE * -1) + GAMEHEIGHT, sizeX * SCALE * zoom, sizeY * SCALE * zoom), width)
 
-#points are vectors and must be converted into a sequence of coordinates
-def RenderPolygon(rigidbody, color, width):
+#Renders a polygon based on its points
+def RenderPolygon(rigidbody: RigidBody2, color: tuple, width: int):
+    #Points are vectors and must be converted into a sequence of coordinates
     dst = Math2.ToCordArray(rigidbody.GetTransformedVertices())
     
     for i in range(len(dst)):
-        dst[i] = ((dst[i][0] * zoom * scale) + GAMEWIDTH, (dst[i][1] * zoom * scale) + GAMEHEIGHT)
+        temp = dst[i]
+        temp = ((temp[1] * zoom * SCALE) + GAMEWIDTH, (temp[0] * zoom * SCALE * -1) + GAMEHEIGHT)
+        dst[i] = temp
 
     pygame.draw.polygon(DISPLAYSURF, color, dst, width)
 
 
-#Color
+#Colors
 BLACK = (0, 0, 0)
 GREY = (80, 80, 80)
 WHITE = (255, 255, 255)
@@ -100,15 +117,11 @@ dx = 0
 dy = 0
 speed = 8
 
-#Main Loop
+#-------Main Loop------
 while True:
     deltaTime = fpsClock.tick(60) / 1000
 
-    #Render Code
-    #Multiply posistion and scale by zoom
-    #Multiply Horizontal / Y positions by -1
-    #Add GAMEWIDTH and GAMEHEIGHT
-
+    #Render Objects
     DISPLAYSURF.fill(TEAL)
 
     DrawBorder()
@@ -119,6 +132,8 @@ while True:
             RenderCircle(body.position, WHITE, body.RADIUS, 0)
         elif body.SHAPETYPE == 1:
             RenderPolygon(body, BLACK, 0)
+            if body.linearVelocity != Vector2(0, 0):
+                RenderVector(body.position, body.linearVelocity, WHITE, 1)
 
     #Event Code 
     for event in pygame.event.get():
@@ -145,10 +160,11 @@ while True:
             pygame.quit()
             sys.exit()
 
-    #Update Velocity based on input
+    #Update Velocity based on input and move
     if (dx != 0 or dy != 0):
         direction = Math2.Normalize(Vector2(dx, dy))
         velocity = direction * speed * deltaTime
+        bodyList[0].linearVelocity = velocity
         bodyList[0].Move(velocity)
 
     #Collisions
@@ -171,6 +187,6 @@ while True:
 #
 #            j += 1
 
-
+    #Update Display and clock
     pygame.display.update()
     fpsClock.tick(FPS)

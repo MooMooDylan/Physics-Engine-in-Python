@@ -1,6 +1,7 @@
 #This is a collection of classes related to 2 Dimensional Vectors
 import math
 from enum import Enum
+from transform import Transform
 
 class Vector2:
     
@@ -21,6 +22,10 @@ class Vector2:
     def __truediv__(self, scaler):
         return Vector2(self.x / scaler, self.y / scaler)
     
+    def __eq__(self, other):
+        if isinstance(other, Vector2):
+            return self.x == other.x and self.y == other.y
+        return False
     
     def __repr__(self):
         return f"({self.x}, {self.y})"
@@ -40,43 +45,43 @@ class Math2:
     #Length of a vector (magnatude)
     #Uses distance formula
     @staticmethod
-    def Length(vector):
+    def Length(vector: Vector2):
         return math.sqrt(vector.x ** 2 + vector.y ** 2)
     
     #Distance between two vectors
     #Uses distace formula
     @staticmethod
-    def Distance(v1, v2):
+    def Distance(v1: Vector2, v2: Vector2):
         return math.sqrt((v1.x - v2.x) ** 2 + (v1.y - v2.y) ** 2)
 
     #Normalize a vector
     @staticmethod
-    def Normalize(vector):
+    def Normalize(vector: Vector2):
         len = Math2.Length(vector)
         return Vector2(vector.x / len, vector.y / len)
 
     #Find the dot product of two vectors
     #v1 • v2
     @staticmethod
-    def Dot(v1, v2):
+    def Dot(v1: Vector2, v2: Vector2):
         return v1.x * v2.x + v1.y * v2.y
 
     #Find the cross product of two vectors
     #Returns the z value of the cross product
     #v1 x v2
     @staticmethod
-    def Cross(v1, v2):
+    def Cross(v1: Vector2, v2: Vector2):
         return v1.x * v2.y + v1.y * v2.x
     
     @staticmethod
-    def Transform(vector, transform):
+    def Transform(vector: Vector2, transform: Transform):
         tx = transform.cos * vector.x - transform.sin * vector.y + transform.positionY
         ty = transform.sin * vector.x + transform.cos * vector.y + transform.positionX
 
         return Vector2(tx, ty)
     
     @staticmethod
-    def ToCordArray(src):
+    def ToCordArray(src: list):
 
         dst = list(range(len(src)))
 
