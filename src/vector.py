@@ -1,7 +1,6 @@
 #This is a collection of classes related to 2 Dimensional Vectors
 import math
 from enum import Enum
-from transform import Transform
 
 class Vector2:
     
@@ -29,6 +28,13 @@ class Vector2:
     
     def __repr__(self):
         return f"({self.x}, {self.y})"
+    
+class Transform:
+    def __init__(self, position: Vector2, angle: float):
+        self.positionX = position.x
+        self.positionY = position.y
+        self.sin = math.sin(angle)
+        self.cos = math.cos(angle)
 
 class Math2:
     @staticmethod

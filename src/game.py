@@ -3,10 +3,11 @@
 #Dylan Ku
 #The code in this project is mostly based of of Two-Bit Codings's C# tutorial translated into Python by me :)
 
-import pygame, sys, random, collisions, math
+import pygame, sys, random, math
 from pygame.locals import *
 from vector import Vector2
 from vector import Math2
+from vector import Transform
 from rigidbodies import CreateShape
 from rigidbodies import RigidBody2
 

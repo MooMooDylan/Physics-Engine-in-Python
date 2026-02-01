@@ -3,7 +3,7 @@ from enum import Enum
 from vector import Vector2
 from vector import World
 from vector import Math2
-from transform import Transform
+from vector import Transform
 
 class Shapes(Enum):
         Circle = 0
