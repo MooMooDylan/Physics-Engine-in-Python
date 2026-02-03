@@ -66,17 +66,19 @@ Format of game.py:
 Imports
     This is where all the physics classes and functions are imported
 
-Pygame Setup
-    This is where the game clock, window dimensions, game world dimensions are set in order to create the window
+Class Colors
+    This is a class of colors (tuples)
 
-Rendering Stuff
+Rendering Class
     The scale of the game is set and the zoom is initialized. Next are functions that make it easier to display physics data like vectors and rigidbodies without having to worry about the scale and zoom.
     Main ones to use:
         RenderVector()
         RenderCircle()
         RenderBox()
         RenderPolygon()
-    Next there is some color definitions for pygame
+
+Pygame Setup
+    This is where the game clock, window dimensions, game world dimensions are set in order to create the window
 
 Initilize
     This is where the initialization of objects happens. Variables, Vectors, RigidBodies ect.

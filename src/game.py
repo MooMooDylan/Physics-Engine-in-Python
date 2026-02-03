@@ -3,13 +3,62 @@
 #Dylan Ku
 #The code in this project is mostly based of of Two-Bit Codings's C# tutorial translated into Python by me :)
 
-import pygame, sys, random, math
+import pygame, sys, random, math, collisions
 from pygame.locals import *
 from vector import Vector2
 from vector import Math2
 from vector import Transform
 from rigidbodies import CreateShape
 from rigidbodies import RigidBody2
+
+class Colors:
+    #Colors
+    BLACK = (0, 0, 0)
+    GREY = (80, 80, 80)
+    WHITE = (255, 255, 255)
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+    TEAL = (0, 128, 128)
+
+#This is outside because python was wining
+def VectorToTuple(vector: Vector2): #Converts a Vector to Coordanites(tuple) that can be rendered
+    return (((vector.x * zoom * SCALE) + GAMEWIDTH), ((vector.y * zoom * SCALE * -1) + GAMEHEIGHT))
+
+class RenderFunctions:
+    #Render Functions
+
+    @staticmethod
+    def DrawBorder(color): #Draws a border showing what is seen on zoom 1 Note: Broken when scale isn't 10
+        if zoom >= 1:
+            pygame.draw.rect(DISPLAYSURF, color, (0, 0, WINDOWWIDTH * zoom, WINDOWHEIGHT * zoom), 1)
+        else:
+            pygame.draw.rect(DISPLAYSURF, color, (GAMEWIDTH / 2, GAMEHEIGHT / 2, WINDOWWIDTH * zoom, WINDOWHEIGHT * zoom), 1)
+
+    @staticmethod
+    def RenderVector(origin: Vector2, vector: Vector2, color: tuple, width: int): #Draws a vector on the screen
+        pygame.draw.line(DISPLAYSURF, color, VectorToTuple(origin), VectorToTuple(origin + (vector * SCALE)), width)
+
+    @staticmethod
+    def RenderCircle(position: Vector2, color: tuple, radius: float, width: int): #Renders a circle
+        pygame.draw.circle(DISPLAYSURF, color, VectorToTuple(position), radius * SCALE * zoom, width)
+
+    @staticmethod
+    def RenderBox(position: Vector2, color: tuple, sizeX: float, sizeY: float, width: int): #Renders a box
+        pygame.draw.rect(DISPLAYSURF, color, ((position.x * zoom * SCALE) + GAMEWIDTH, (position.y * zoom * SCALE * -1) + GAMEHEIGHT, sizeX * SCALE * zoom, sizeY * SCALE * zoom), width)
+
+    #Renders a polygon based on its points
+    @staticmethod
+    def RenderPolygon(rigidbody: RigidBody2, color: tuple, width: int):
+        #Points are vectors and must be converted into a sequence of coordinates
+        dst = Math2.ToCordArray(rigidbody.GetTransformedVertices())
+    
+        for i in range(len(dst)):
+            temp = dst[i]
+            temp = ((temp[1] * zoom * SCALE) + GAMEWIDTH, (temp[0] * zoom * SCALE * -1) + GAMEHEIGHT)
+            dst[i] = temp
+
+        pygame.draw.polygon(DISPLAYSURF, color, dst, width)
 
 #----Pygame Setup----
 
@@ -54,52 +103,13 @@ SCALE = 10
 zoom = 1
 zoomSpeed = 0.5
 
-#Render Functions
 
-def DrawBorder(): #Draws a border showing what is seen on zoom 1 Note: Broken when scale isn't 10
-    if zoom >= 1:
-        pygame.draw.rect(DISPLAYSURF, BLACK, (0, 0, WINDOWWIDTH * zoom, WINDOWHEIGHT * zoom), 1)
-    else:
-        pygame.draw.rect(DISPLAYSURF, BLACK, (GAMEWIDTH / 2, GAMEHEIGHT / 2, WINDOWWIDTH * zoom, WINDOWHEIGHT * zoom), 1)
-
-def VectorToTuple(vector: Vector2): #Converts a Vector to Coordanites(tuple) that can be rendered
-    return (((vector.x * zoom * SCALE) + GAMEWIDTH), ((vector.y * zoom * SCALE * -1) + GAMEHEIGHT))
-
-def RenderVector(origin: Vector2, vector: Vector2, color: tuple, width: int): #Draws a vector on the screen
-    pygame.draw.line(DISPLAYSURF, color, VectorToTuple(origin), VectorToTuple(origin + (vector * SCALE)), width)
-
-def RenderCircle(position: Vector2, color: tuple, radius: float, width: int): #Renders a circle
-    pygame.draw.circle(DISPLAYSURF, color, VectorToTuple(position), radius * SCALE * zoom, width)
-
-def RenderBox(position: Vector2, color: tuple, sizeX: float, sizeY: float, width: int): #Renders a box
-    pygame.draw.rect(DISPLAYSURF, color, ((position.x * zoom * SCALE) + GAMEWIDTH, (position.y * zoom * SCALE * -1) + GAMEHEIGHT, sizeX * SCALE * zoom, sizeY * SCALE * zoom), width)
-
-#Renders a polygon based on its points
-def RenderPolygon(rigidbody: RigidBody2, color: tuple, width: int):
-    #Points are vectors and must be converted into a sequence of coordinates
-    dst = Math2.ToCordArray(rigidbody.GetTransformedVertices())
-    
-    for i in range(len(dst)):
-        temp = dst[i]
-        temp = ((temp[1] * zoom * SCALE) + GAMEWIDTH, (temp[0] * zoom * SCALE * -1) + GAMEHEIGHT)
-        dst[i] = temp
-
-    pygame.draw.polygon(DISPLAYSURF, color, dst, width)
-
-
-#Colors
-BLACK = (0, 0, 0)
-GREY = (80, 80, 80)
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-TEAL = (0, 128, 128)
 
 #------Initialize------
 
 #Test stuff
 bodyList = list()
+bodyColors = list()
 bodyCount = 10
 padding = 1
 
@@ -112,7 +122,8 @@ for i in range(bodyCount):
     if type == 0:
         bodyList.append(CreateShape.CreateCircleBody(1, Vector2(x, y), 2, False, 0.5))
     if type == 1:
-        bodyList.append(CreateShape.CreateBoxBody(2, 2, Vector2(x, y), 2, False, 0.5))
+        bodyList.append(CreateShape.CreateBoxBody(4, 4, Vector2(x, y), 2, False, 0.5))
+        bodyColors.append(Colors.WHITE)
         
 dx = 0
 dy = 0
@@ -123,18 +134,20 @@ while True:
     deltaTime = fpsClock.tick(60) / 1000
 
     #Render Objects
-    DISPLAYSURF.fill(TEAL)
+    DISPLAYSURF.fill(Colors.TEAL)
 
-    DrawBorder()
+    RenderFunctions.DrawBorder(Colors.BLACK)
 
     for i in range(bodyCount):
-        body = bodyList[i]
+        body: RigidBody2 = bodyList[i]
         if body.SHAPETYPE == 0:
-            RenderCircle(body.position, WHITE, body.RADIUS, 0)
+            RenderFunctions.RenderCircle(body.position, Colors.WHITE, body.RADIUS, 0)
         elif body.SHAPETYPE == 1:
-            RenderPolygon(body, BLACK, 0)
+            RenderFunctions.RenderPolygon(body, bodyColors[i], 0)
             if body.linearVelocity != Vector2(0, 0):
-                RenderVector(body.position, body.linearVelocity, WHITE, 1)
+                RenderFunctions.RenderVector(body.position, body.linearVelocity, Colors.BLACK, 1)
+            else:
+                RenderFunctions.RenderVector(body.position)
 
     #Event Code 
     for event in pygame.event.get():
@@ -173,20 +186,25 @@ while True:
     for i in range(bodyCount):
         body = bodyList[i]
         body.Rotate(math.pi / 2 * deltaTime)
+        bodyColors[i] = Colors.WHITE
 
-#    for i in range(bodyCount - 1):
-#        bodyA = bodyList[i]
-#        j = i + 1
-#        while j < bodyCount:
-#            bodyB = bodyList[j]
-#            
+    for i in range(bodyCount - 1):
+        bodyA: RigidBody2 = bodyList[i]
+        j = i + 1
+        while j < bodyCount:
+            bodyB: RigidBody2 = bodyList[j]
+            
+            if collisions.IntercectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices()):
+                bodyColors[i] = Colors.RED
+                bodyColors[j] = Colors.RED
+
 #            intercecting = collisions.IntercectCircles(bodyA.position, bodyA.RADIUS, bodyB.position, bodyB.RADIUS)
 #
 #            if intercecting.collide:
 #                bodyA.Move(intercecting.normal * -1 * (intercecting.depth / 2))
 #                bodyB.Move(intercecting.normal * (intercecting.depth / 2))
 #
-#            j += 1
+            j += 1
 
     #Update Display and clock
     pygame.display.update()
