@@ -11,7 +11,7 @@ class Shapes(Enum):
 
 class RigidBody2: 
 
-    def __init__(self, pos, density, mass, restitution, area, isStatic, radius, width, height, shapetype):
+    def __init__(self, pos: Vector2, density, mass, restitution, area, isStatic: bool, radius, width, height, shapetype):
         self.position = pos
         self.linearVelocity = Vector2(0, 0)
         self.rotation = 0
@@ -45,17 +45,15 @@ class RigidBody2:
 
     def GetTransformedVertices(self):
         if self.transformUpdateRequired:
-            transform = Transform(self.position, self.rotation)
+            transform = Transform(self.position.x, self.position.y, self.rotation)
 
             for i in range(len(self.VERTICES)):
                 v = self.VERTICES[i]
                 self.transformedvertices[i] = Math2.Transform(v, transform)
-                 
-
         return self.transformedvertices
 
     def Move(self, amount: float):
-        self.position += amount
+        self.position = self.position + amount
         self.transformUpdateRequired = True
 
     def MoveTo(self, position: Vector2):
@@ -63,8 +61,11 @@ class RigidBody2:
         self.transformUpdateRequired = True
 
     def Rotate(self, amount: float):
-        self.rotation += amount
+        self.rotation = self.rotation + amount
         self.transformUpdateRequired = True
+
+    def __repr__(self):
+        print(f"{self.position}, {self.linearVelocity}")
     
 class CreateShape:
     @staticmethod
@@ -74,16 +75,12 @@ class CreateShape:
 
             if (area < World.MINBODYSIZE):
                 print("Error: Area is too small.")
-                return False
             if (area > World.MAXBODYSIZE):
                 print("Error: Area is too big")
-                return False
             if (dencity < World.MINDENCITY):
                  print("Error: Dencity too small")
-                 return False
             if (dencity > World.MAXDENCITY):
                  print("Error: Dencity too large")
-                 return False
 
             restitution = Math2.Clamp(restitution, 0, 1)
 
@@ -98,16 +95,12 @@ class CreateShape:
 
             if (area < World.MINBODYSIZE):
                 print("Error: Area is too small.")
-                return False
             if (area > World.MAXBODYSIZE):
                 print("Error: Area is too big")
-                return False
             if (dencity < World.MINDENCITY):
                 print("Error: Dencity too small")
-                return False
             if (dencity > World.MAXDENCITY):
                 print("Error: Dencity too large")
-                return False
 
             restitution = Math2.Clamp(restitution, 0, 1)
 

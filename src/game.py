@@ -22,11 +22,15 @@ class Colors:
     TEAL = (0, 128, 128)
 
 #This is outside because python was wining
-def VectorToTuple(vector: Vector2): #Converts a Vector to Coordanites(tuple) that can be rendered
+def VectorToTuple(vector: Vector2) -> tuple: #Converts a Vector to Coordanites(tuple) that can be rendered
     return (((vector.x * zoom * SCALE) + GAMEWIDTH), ((vector.y * zoom * SCALE * -1) + GAMEHEIGHT))
 
 class RenderFunctions:
     #Render Functions
+
+    #Multiply posistion and scale by zoom
+    #Multiply Horizontal / Y positions by -1
+    #Add GAMEWIDTH and GAMEHEIGHT
 
     @staticmethod
     def DrawBorder(color): #Draws a border showing what is seen on zoom 1 Note: Broken when scale isn't 10
@@ -40,12 +44,20 @@ class RenderFunctions:
         pygame.draw.line(DISPLAYSURF, color, VectorToTuple(origin), VectorToTuple(origin + (vector * SCALE)), width)
 
     @staticmethod
-    def RenderCircle(position: Vector2, color: tuple, radius: float, width: int): #Renders a circle
-        pygame.draw.circle(DISPLAYSURF, color, VectorToTuple(position), radius * SCALE * zoom, width)
+    def RenderCircle(position: Vector2, color: tuple, radius: float, outline=0, outlinecolor=Colors.BLACK): #Renders a circle
+        if outline == 0:
+            pygame.draw.circle(DISPLAYSURF, color, VectorToTuple(position), radius * SCALE * zoom, 0)
+        else:
+            pygame.draw.circle(DISPLAYSURF, color, VectorToTuple(position), radius * SCALE * zoom, 0)
+            pygame.draw.circle(DISPLAYSURF, outlinecolor, VectorToTuple(position), radius * SCALE * zoom, outline)
 
     @staticmethod
-    def RenderBox(position: Vector2, color: tuple, sizeX: float, sizeY: float, width: int): #Renders a box
-        pygame.draw.rect(DISPLAYSURF, color, ((position.x * zoom * SCALE) + GAMEWIDTH, (position.y * zoom * SCALE * -1) + GAMEHEIGHT, sizeX * SCALE * zoom, sizeY * SCALE * zoom), width)
+    def RenderBox(position: Vector2, color: tuple, sizeX: float, sizeY: float, outline=0, outlinecolor=Colors.BLACK): #Renders a box
+        if outline == 0:
+            pygame.draw.rect(DISPLAYSURF, color, ((position.x * zoom * SCALE) + GAMEWIDTH, (position.y * zoom * SCALE * -1) + GAMEHEIGHT, sizeX * SCALE * zoom, sizeY * SCALE * zoom), 0)
+        else:
+            pygame.draw.rect(DISPLAYSURF, color, ((position.x * zoom * SCALE) + GAMEWIDTH, (position.y * zoom * SCALE * -1) + GAMEHEIGHT, sizeX * SCALE * zoom, sizeY * SCALE * zoom), 0)
+            pygame.draw.rect(DISPLAYSURF, outlinecolor, ((position.x * zoom * SCALE) + GAMEWIDTH, (position.y * zoom * SCALE * -1) + GAMEHEIGHT, sizeX * SCALE * zoom, sizeY * SCALE * zoom), outline)
 
     #Renders a polygon based on its points
     @staticmethod
@@ -93,17 +105,11 @@ except:
 
 #----REDERING STUFF----
 
-#Multiply posistion and scale by zoom
-#Multiply Horizontal / Y positions by -1
-#Add GAMEWIDTH and GAMEHEIGHT
-
 #Zoom and Scale
-#Note scale pixels = 1 meter when zoom = 1
+#Note scale * pixels = 1 meter, when zoom = 1
 SCALE = 10
 zoom = 1
 zoomSpeed = 0.5
-
-
 
 #------Initialize------
 
@@ -114,14 +120,14 @@ bodyCount = 10
 padding = 1
 
 for i in range(bodyCount):
-    type = 1
+    shapeType = 1
 
     x = random.randrange(-GAMEWIDTH / 10 + 1, GAMEWIDTH / 10 - 1)
     y = random.randrange(-GAMEHEIGHT / 10 + 1, GAMEHEIGHT / 10 - 1)
 
-    if type == 0:
+    if shapeType == 0:
         bodyList.append(CreateShape.CreateCircleBody(1, Vector2(x, y), 2, False, 0.5))
-    if type == 1:
+    if shapeType == 1:
         bodyList.append(CreateShape.CreateBoxBody(4, 4, Vector2(x, y), 2, False, 0.5))
         bodyColors.append(Colors.WHITE)
         
@@ -146,8 +152,6 @@ while True:
             RenderFunctions.RenderPolygon(body, bodyColors[i], 0)
             if body.linearVelocity != Vector2(0, 0):
                 RenderFunctions.RenderVector(body.position, body.linearVelocity, Colors.BLACK, 1)
-            else:
-                RenderFunctions.RenderVector(body.position)
 
     #Event Code 
     for event in pygame.event.get():
@@ -180,6 +184,8 @@ while True:
         velocity = direction * speed * deltaTime
         bodyList[0].linearVelocity = velocity
         bodyList[0].Move(velocity)
+    else:
+        velocity = Vector2(0, 0)
 
     #Collisions
 
@@ -189,14 +195,24 @@ while True:
         bodyColors[i] = Colors.WHITE
 
     for i in range(bodyCount - 1):
-        bodyA: RigidBody2 = bodyList[i]
+        bodyA:RigidBody2 = bodyList[i]
         j = i + 1
         while j < bodyCount:
-            bodyB: RigidBody2 = bodyList[j]
+            bodyA: RigidBody2 = bodyList[i]
             
-            if collisions.IntercectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices()):
+            bodyB: RigidBody2 = bodyList[j]
+
+            intercecting = collisions.IntercectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices())
+            print(intercecting.collide)
+            if intercecting.collide:
+                
                 bodyColors[i] = Colors.RED
                 bodyColors[j] = Colors.RED
+
+                inverseNormal = intercecting.normal * -1
+
+                bodyA.Move((intercecting.depth / 2) * (inverseNormal))
+                bodyB.Move((intercecting.depth / 2) * intercecting.normal)
 
 #            intercecting = collisions.IntercectCircles(bodyA.position, bodyA.RADIUS, bodyB.position, bodyB.RADIUS)
 #

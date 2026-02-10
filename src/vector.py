@@ -10,14 +10,24 @@ class Vector2:
 
     #Math Functions
     def __add__(self, other):
-        return Vector2(self.x + other.x, self.y + other.y)
-    
+        print(f"+. {type(other)}")
+        if isinstance(other, (int, float)):
+            return Vector2(self.x + other, self.y + other)
+        elif isinstance(other, Vector2):
+            return Vector2(self.x + other.x, self.y + other.y)
+        else:
+            print("Vector Operation Error: Only int float or Vector2")
+            return NotImplemented
+        
     def __sub__(self, other):
-        return Vector2(self.x - other.x, self.y - other.y)
+        if isinstance(other, float) or isinstance(other, int):
+            return Vector2(self.x - other, self.y - other)
+        elif isinstance(other, Vector2):
+            return Vector2(self.x - other.x, self.y - other.y)
     
     def __mul__(self, scaler):
         return Vector2(self.x * scaler, self.y * scaler)
-    
+            
     def __truediv__(self, scaler):
         return Vector2(self.x / scaler, self.y / scaler)
     
@@ -30,11 +40,14 @@ class Vector2:
         return f"({self.x}, {self.y})"
     
 class Transform:
-    def __init__(self, position: Vector2, angle: float):
-        self.positionX = position.x
-        self.positionY = position.y
+    def __init__(self, posX, posY, angle: float):
+        self.positionX = posX
+        self.positionY = posY
         self.sin = math.sin(angle)
         self.cos = math.cos(angle)
+
+    def __repr__(self):
+        return f"({self.positionX}, {self.positionY}), {self.sin}, {self.cos}"
 
 class Math2:
     @staticmethod
@@ -104,3 +117,14 @@ class World:
     #g/cm^3
     MINDENCITY = 0.5
     MAXDENCITY = 21.4
+
+#Test
+#v1 = Vector2(0, 0)
+#v2 = Vector2(1, 2)
+#s = 2.5
+
+#print(v1 + v2)
+
+#print(v2 + s)
+
+#print(v2 * s)
