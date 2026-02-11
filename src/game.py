@@ -90,7 +90,7 @@ GAMEHEIGHT = WINDOWHEIGHT / 2
 
 #Create Window
 DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), 0, 32)
-image = 1
+image = 0
 pygame.display.set_caption('Physics')
 
 #Import Icon
@@ -117,13 +117,13 @@ zoomSpeed = 0.5
 bodyList = list()
 bodyColors = list()
 bodyCount = 10
-padding = 1
+padding = 2
 
 for i in range(bodyCount):
     shapeType = 1
 
-    x = random.randrange(-GAMEWIDTH / 10 + 1, GAMEWIDTH / 10 - 1)
-    y = random.randrange(-GAMEHEIGHT / 10 + 1, GAMEHEIGHT / 10 - 1)
+    x = random.randrange(-GAMEWIDTH / 10 + padding, GAMEWIDTH / 10 - padding)
+    y = random.randrange(-GAMEHEIGHT / 10 + padding, GAMEHEIGHT / 10 - padding)
 
     if shapeType == 0:
         bodyList.append(CreateShape.CreateCircleBody(1, Vector2(x, y), 2, False, 0.5))
@@ -189,6 +189,7 @@ while True:
 
     #Collisions
 
+    #Rotate
     for i in range(bodyCount):
         body = bodyList[i]
         body.Rotate(math.pi / 2 * deltaTime)
@@ -203,11 +204,16 @@ while True:
             bodyB: RigidBody2 = bodyList[j]
 
             intercecting = collisions.IntercectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices())
-            print(intercecting.collide)
+
             if intercecting.collide:
                 
+                print(f"RigidBody Collision: {i}, {j}")
+
                 bodyColors[i] = Colors.RED
                 bodyColors[j] = Colors.RED
+
+                RenderFunctions.RenderVector(bodyA.position, intercecting.normal, Colors.BLUE, 1)
+                RenderFunctions.RenderVector(bodyB.position, intercecting.normal, Colors.BLUE, 1)
 
                 inverseNormal = intercecting.normal * -1
 

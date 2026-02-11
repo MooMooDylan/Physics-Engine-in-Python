@@ -65,7 +65,7 @@ class RigidBody2:
         self.transformUpdateRequired = True
 
     def __repr__(self):
-        print(f"{self.position}, {self.linearVelocity}")
+        return f"{self.position}, {self.linearVelocity}"
     
 class CreateShape:
     @staticmethod

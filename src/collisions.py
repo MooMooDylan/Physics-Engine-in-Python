@@ -13,6 +13,11 @@ class Collision:
             return f"{self.collide}"
         else:
             return f"{self.collide}, {self.normal}, {self.depth}"
+        
+class Projection:
+    def __init__(self, min, max):
+        self.min = min
+        self.max = max
 
 def IntercectCircles(centerA: Vector2, radiusA: float, centerB: Vector2, radiusB: float):
     distance = Math2.Distance(centerA, centerB)
@@ -31,16 +36,16 @@ def IntercectPolygons(verticesA: list, verticesB: list): #Lists of Vector2s
     depth = sys.float_info.max
 
     for i in range(len(verticesA)):
-        va = verticesA[i]
-        vb = verticesA[(i + 1) % len(verticesA)]
+        va: Vector2 = verticesA[i]
+        vb: Vector2 = verticesA[(i + 1) % len(verticesA)]
 
         edge = vb - va
         axis = Vector2(-edge.y, edge.x)
 
-        minA = ProjectVertices(verticesA, axis).x
-        maxA = ProjectVertices(verticesA, axis).y
-        minB = ProjectVertices(verticesB, axis).x
-        maxB = ProjectVertices(verticesB, axis).y
+        minA = ProjectVertices(verticesA, axis).min
+        maxA = ProjectVertices(verticesA, axis).max
+        minB = ProjectVertices(verticesB, axis).min
+        maxB = ProjectVertices(verticesB, axis).max
 
         #If so there is a gap
         if minA >= maxB or minB >= maxA:
@@ -62,15 +67,24 @@ def IntercectPolygons(verticesA: list, verticesB: list): #Lists of Vector2s
         edge = vb - va
         axis = Vector2(-edge.y, edge.x)
 
-        minA = ProjectVertices(verticesA, axis).x
-        maxA = ProjectVertices(verticesA, axis).y
-        minB = ProjectVertices(verticesB, axis).x
-        maxB = ProjectVertices(verticesB, axis).y
+        minA = ProjectVertices(verticesA, axis).min
+        maxA = ProjectVertices(verticesA, axis).max
+        minB = ProjectVertices(verticesB, axis).min
+        maxB = ProjectVertices(verticesB, axis).max
 
         #If so there is a gap
         if minA >= maxB or minB >= maxA:
             return Collision(False)
-    
+
+        axisDepth = min(maxB - minA, maxA - minB)
+
+        if axisDepth < depth:
+            depth = axisDepth
+            normal = axis
+
+    depth = depth / Math2.Length(normal)
+    normal = Math2.Normalize(normal)
+
     #No gaps found meaning collision
     return Collision(True, depth, normal)
 
@@ -86,5 +100,15 @@ def ProjectVertices(vertices: list, axis: Vector2):
         if proj > max:
             max = proj
     
-    return Vector2(min, max)
+    return Projection(min, max)
 
+def FindArithmaticMean(vertices: list):
+    sumX = 0.0
+    sumY = 0.0
+
+    for i in range(len(vertices)):
+        v: Vector2 = vertices[i]
+        sumX += v.x
+        sumY += v.y
+    
+    return Vector2(sumX / float(len(vertices)), sumY / float(len(vertices)))

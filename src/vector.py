@@ -10,7 +10,6 @@ class Vector2:
 
     #Math Functions
     def __add__(self, other):
-        print(f"+. {type(other)}")
         if isinstance(other, (int, float)):
             return Vector2(self.x + other, self.y + other)
         elif isinstance(other, Vector2):
