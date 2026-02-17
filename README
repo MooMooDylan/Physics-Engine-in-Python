@@ -28,6 +28,8 @@ Physics Engine
         collisions.py
             CircleCollision
             IntercectCircles()
+            IntercectPolygons()
+            ProjectVertices
         game.py
             (Details Later)
         rigidbodies.py

@@ -119,6 +119,8 @@ bodyColors = list()
 bodyCount = 10
 padding = 2
 
+toggleRotation = False
+
 for i in range(bodyCount):
     shapeType = 1
 
@@ -173,6 +175,12 @@ while True:
             if event.key == K_DOWN:
                 dy -= 1
 
+            if event.key == K_r:
+                if toggleRotation:
+                    toggleRotation = False
+                else:
+                    toggleRotation = True
+
         #Quit game
         if event.type == QUIT:
             pygame.quit()
@@ -191,8 +199,9 @@ while True:
 
     #Rotate
     for i in range(bodyCount):
-        body = bodyList[i]
-        body.Rotate(math.pi / 2 * deltaTime)
+        if toggleRotation:
+            body = bodyList[i]
+            body.Rotate(math.pi / 2 * deltaTime)
         bodyColors[i] = Colors.WHITE
 
     for i in range(bodyCount - 1):
@@ -204,21 +213,22 @@ while True:
             bodyB: RigidBody2 = bodyList[j]
 
             intercecting = collisions.IntercectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices())
+            
 
             if intercecting.collide:
-                
-                print(f"RigidBody Collision: {i}, {j}")
+
+                print(f"RigidBody Collision: {i}, {j}\n")
 
                 bodyColors[i] = Colors.RED
                 bodyColors[j] = Colors.RED
 
-                RenderFunctions.RenderVector(bodyA.position, intercecting.normal, Colors.BLUE, 1)
-                RenderFunctions.RenderVector(bodyB.position, intercecting.normal, Colors.BLUE, 1)
-
                 inverseNormal = intercecting.normal * -1
 
-                bodyA.Move((intercecting.depth / 2) * (inverseNormal))
-                bodyB.Move((intercecting.depth / 2) * intercecting.normal)
+                RenderFunctions.RenderVector(bodyA.position, inverseNormal * (intercecting.depth / 2), Colors.BLUE, 1)
+                RenderFunctions.RenderVector(bodyB.position, intercecting.normal * (intercecting.depth / 2), Colors.BLUE, 1)
+
+                bodyA.Move((inverseNormal * (intercecting.depth / 2)))
+                bodyB.Move((intercecting.normal * (intercecting.depth / 2)))
 
 #            intercecting = collisions.IntercectCircles(bodyA.position, bodyA.RADIUS, bodyB.position, bodyB.RADIUS)
 #

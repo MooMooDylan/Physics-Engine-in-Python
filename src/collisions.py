@@ -55,10 +55,7 @@ def IntercectPolygons(verticesA: list, verticesB: list): #Lists of Vector2s
 
         if axisDepth < depth:
             depth = axisDepth
-            normal = axis
-        
-    depth = depth / Math2.Length(normal)
-    normal = Math2.Normalize(normal)
+            normal = Vector2(axis.y, axis.x)
 
     for i in range(len(verticesB)):
         va = verticesB[i]
@@ -71,7 +68,7 @@ def IntercectPolygons(verticesA: list, verticesB: list): #Lists of Vector2s
         maxA = ProjectVertices(verticesA, axis).max
         minB = ProjectVertices(verticesB, axis).min
         maxB = ProjectVertices(verticesB, axis).max
-
+        
         #If so there is a gap
         if minA >= maxB or minB >= maxA:
             return Collision(False)
@@ -80,13 +77,21 @@ def IntercectPolygons(verticesA: list, verticesB: list): #Lists of Vector2s
 
         if axisDepth < depth:
             depth = axisDepth
-            normal = axis
-
+            normal = Vector2(axis.y, axis.x)
+            
     depth = depth / Math2.Length(normal)
     normal = Math2.Normalize(normal)
 
+    centerA = FindArithmaticMean(verticesA)
+    centerB = FindArithmaticMean(verticesB)
+
+    direction = centerB - centerA
+
+    if Math2.Dot(direction, normal) < 0:
+        normal = normal * -1
+
     #No gaps found meaning collision
-    return Collision(True, depth, normal)
+    return Collision(True, normal, depth)
 
 def ProjectVertices(vertices: list, axis: Vector2):
     min = sys.float_info.max
@@ -94,7 +99,9 @@ def ProjectVertices(vertices: list, axis: Vector2):
 
     for i in range(len(vertices)):
         v = vertices[i]
+
         proj = Math2.Dot(v, axis)
+
         if proj < min:
             min = proj
         if proj > max:
